@@ -28,7 +28,7 @@ runs:
 
         if [[ -n $status_is_failed ]]; then
           >&2 echo "Pull request checks have not passed. Try again once checks have passed."
-          echo "Fast forward failed - not all checks have passed.\n\n<img src=\"https://media3.giphy.com/media/YTJXDIivNMPuNSMgc0/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -b-
+          echo "Fast forward failed - not all checks have passed.\n\n<img src=\"https://media3.giphy.com/media/YTJXDIivNMPuNSMgc0/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -F-
           exit 1
         fi
 
@@ -53,11 +53,11 @@ runs:
             gh pr comment ${{github.event.issue.number}} -b "Fast forward failed - $result"
             exit 1
           else
-            echo "Successfully fast forwarded $target to $branch\n\n<img src=\"https://media3.giphy.com/media/wijMRo7UZXSqA/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -b-
+            echo "Successfully fast forwarded $target to $branch\n\n<img src=\"https://media3.giphy.com/media/wijMRo7UZXSqA/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -F-
           fi
         else
           >&2 echo "Pull request checks have not passed or are pending. Please try again."
-          echo "Fast forward failed - not all checks have passed.\n\n<img src=\"https://media3.giphy.com/media/YTJXDIivNMPuNSMgc0/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -b-
+          echo "Fast forward failed - not all checks have passed.\n\n<img src=\"https://media3.giphy.com/media/YTJXDIivNMPuNSMgc0/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -F-
           exit 1
         fi
         
