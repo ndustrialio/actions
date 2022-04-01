@@ -1,0 +1,63 @@
+name: Fast Forward Merge
+author: mgagliardo91
+branding:
+  icon: git-merge
+  color: purple
+description: Enables fast-forward merging of PRs using a comment-command
+inputs:
+  token:
+    description: GitHub Admin Token - Required when using branch protection
+    required: false
+    default: ${{github.token}}
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        token: ${{ inputs.token }}
+    - name: Fast Forward PR
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: |
+        branch=$(gh pr view ${{github.event.issue.number}} --json headRefName --jq '.headRefName')
+        target=$(gh pr view ${{github.event.issue.number}} --json baseRefName --jq '.baseRefName')
+        echo "from $branch to $target"
+        status_is_failed=$(echo $(gh pr checks ${{github.event.issue.number}}) | grep 'fail') || true
+
+        if [[ -n $status_is_failed ]]; then
+          >&2 echo "Pull request checks have not passed. Try again once checks have passed."
+          gh pr comment ${{github.event.issue.number}} -b "Fast forward failed - not all checks have passed."
+          exit 1
+        fi
+
+        status_is_pending=$(echo $(gh pr checks ${{github.event.issue.number}}) | grep 'pending') || true 
+
+        pending_iter_total=1
+        while [[ -n $status_is_pending ]] && [[ $pending_iter_total -le 6 ]]; do
+          echo "Waiting to see non-pending state...($pending_iter_total/6)"
+          sleep 10
+          ((pending_iter_total++))
+          status_is_pending=$(echo $(gh pr checks ${{github.event.issue.number}}) | grep 'pending') || true 
+        done
+
+        status_is_success=$(echo $(gh pr checks ${{github.event.issue.number}}) | grep 'pass') || true 
+
+        if [[ -n $status_is_success ]]; then
+          git checkout $branch && git pull
+          git checkout $target && git pull
+          result=$(git merge --ff-only $branch 2>&1 && git push origin HEAD 2>&1) || exit_code=$?
+          if ! [[ $exit_code -eq 0 ]]; then
+            >&2 echo "Unable to complete fast forward on $target to $branch"
+            gh pr comment ${{github.event.issue.number}} -b "Fast forward failed - $result"
+            exit 1
+          else
+            gh pr comment ${{github.event.issue.number}} -b "Successfully fast forwarded $target to $branch"
+          fi
+        else
+          >&2 echo "Pull request checks have not passed or are pending. Please try again."
+          gh pr comment ${{github.event.issue.number}} -b "Fast forward failed - not all checks have passed."
+          exit 1
+        fi
+        
