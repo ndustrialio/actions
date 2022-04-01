@@ -28,7 +28,7 @@ runs:
 
         if [[ -n $status_is_failed ]]; then
           >&2 echo "Pull request checks have not passed. Try again once checks have passed."
-          echo "Fast forward failed - not all checks have passed.\n\n<img src=\"https://media3.giphy.com/media/YTJXDIivNMPuNSMgc0/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -F-
+          echo -e "Fast forward failed - not all checks have passed.\n\n<img src=\"https://media3.giphy.com/media/YTJXDIivNMPuNSMgc0/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -F-
           exit 1
         fi
 
@@ -50,14 +50,14 @@ runs:
           result=$(git merge --ff-only $branch 2>&1 && git push origin HEAD 2>&1) || exit_code=$?
           if ! [[ $exit_code -eq 0 ]]; then
             >&2 echo "Unable to complete fast forward on $target to $branch"
-            gh pr comment ${{github.event.issue.number}} -b "Fast forward failed - $result"
+            echo -e "Fast forward failed - $result.\n\n<img src=\"https://media3.giphy.com/media/YTJXDIivNMPuNSMgc0/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -F-
             exit 1
           else
-            echo "Successfully fast forwarded $target to $branch\n\n<img src=\"https://media3.giphy.com/media/wijMRo7UZXSqA/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -F-
+            echo -e "Successfully fast forwarded $target to $branch\n\n<img src=\"https://media3.giphy.com/media/wijMRo7UZXSqA/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -F-
           fi
         else
           >&2 echo "Pull request checks have not passed or are pending. Please try again."
-          echo "Fast forward failed - not all checks have passed.\n\n<img src=\"https://media3.giphy.com/media/YTJXDIivNMPuNSMgc0/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -F-
+          echo -e "Fast forward failed - not all checks have passed.\n\n<img src=\"https://media3.giphy.com/media/YTJXDIivNMPuNSMgc0/giphy.gif\"/>" | gh pr comment ${{github.event.issue.number}} -F-
           exit 1
         fi
         
