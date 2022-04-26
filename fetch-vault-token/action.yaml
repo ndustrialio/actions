@@ -1,9 +1,9 @@
 name: Get Vault Role Token
 author: mgagliardo91
 branding:
-  icon: git-merge
-  color: purple
-description: Enables fast-forward merging of PRs using a comment-command
+  icon: lock
+  color: green
+description: Outputs a valid vault token for the given valut role and secret combination
 inputs:
   vault-address:
     description: The vault URL
