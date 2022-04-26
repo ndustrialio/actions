@@ -28,5 +28,5 @@ runs:
         ROLE_ID: ${{ inputs.role-id }}
         SECRET_ID: ${{ inputs.secret-id }}
       run: |
-        VAULT_TOKEN=$(curl -s --request POST '${{ secrets.VAULT_ADDR }}/v1/auth/approle/login' --header 'Content-Type: application/json' --data-raw '{"role_id": "${{ env.ROLE_ID }}","secret_id": "${{ env.SECRET_ID }}"}' | jq -r '.auth.client_token'")
+        VAULT_TOKEN=$(curl -s --request POST '${{ env.VAULT_ADDR }}/v1/auth/approle/login' --header 'Content-Type: application/json' --data-raw '{"role_id": "${{ env.ROLE_ID }}","secret_id": "${{ env.SECRET_ID }}"}' | jq -r '.auth.client_token'")
         echo "::set-output name=vault-token::$(echo $VAULT_TOKEN)"
