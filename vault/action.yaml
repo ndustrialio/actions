@@ -1,0 +1,32 @@
+name: Get Vault Role Token
+author: mgagliardo91
+branding:
+  icon: git-merge
+  color: purple
+description: Enables fast-forward merging of PRs using a comment-command
+inputs:
+  vault-address:
+    description: The vault URL
+    required: true
+  role-id:
+    description: The vault role ID
+    required: true
+  secret-id:
+    description: The vault role secret id
+    required: true
+outputs:
+  vault-token:
+    description: 'The generated vault token'
+    value: ${{ steps.fetch-vault-token.outputs.vault-token }}
+runs:
+  using: composite
+  steps:
+    - id: fetch-vault-token
+      shell: bash
+      env:
+        VAULT_ADDR: ${{ inputs.vault-address }}
+        ROLE_ID: ${{ inputs.role-id }}
+        SECRET_ID: ${{ inputs.secret-id }}
+      run: |
+        VAULT_TOKEN=$(curl -s --request POST '${{ secrets.VAULT_ADDR }}/v1/auth/approle/login' --header 'Content-Type: application/json' --data-raw '{"role_id": "${{ env.ROLE_ID }}","secret_id": "${{ env.SECRET_ID }}"}' | jq -r '.auth.client_token'")
+        echo "::set-output name=vault-token::$(echo $VAULT_TOKEN)"
