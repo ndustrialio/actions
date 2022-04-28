@@ -8,7 +8,7 @@ An action that enables a grabbing a vault token via a role and secret.
 name: Test Fetch Vault Token
 
 jobs:
-  ff-merge:
+  fetch-vault-token:
     runs-on: ubuntu-latest
     steps:
       - name: Get Vault Token
