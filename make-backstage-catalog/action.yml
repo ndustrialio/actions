@@ -1,0 +1,43 @@
+#action.yml
+name: 'make-backstage-catalog'
+description: 'Reads a project meta.yaml and outputs + commits Backstage catalog config'
+inputs:
+  meta:
+    required: false
+    description: 'meta.yaml path'
+    default: 'none'
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.x
+        architecture: x64   
+    - name: "Install dependencies"
+      run: |
+        python -VV
+        python -m site
+        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install --upgrade pyyaml pygithub
+      shell: bash
+    - run: python ${{ github.action_path }}/backstage_yml.py > ~/catalog-info.yaml
+      shell: bash
+    - name: Check for changes
+      run: git status
+      shell: bash
+    - name: Stage changes
+      run: git add .
+      shell: bash
+    - name: Config github 
+      run: |
+        git config --global user.name 'Backstage Automation'
+        git config --global user.email 'devops@ndustrial.io'
+      shell: bash
+    - name: Commit changes
+      run: git commit -m "Auto update"
+      shell: bash      
+    - name: Push to master
+      run: git push
+      shell: bash
