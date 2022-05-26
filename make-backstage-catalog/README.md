@@ -24,5 +24,5 @@ jobs:
     steps:
     - name: Generate Backstage catalog config from meta.yaml
       id: makecatalog
-      uses: ndustrialio/ndustrial-actions/make-backstage-catalog@master
+      uses: ndustrialio/ndustrial-actions/make-backstage-catalog@main
 ```

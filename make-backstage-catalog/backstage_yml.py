@@ -4,6 +4,8 @@ import os
 import sys
 import yaml
 import argparse
+import pprint as pp
+from mergedeep import merge, Strategy
 from github import Github
 
 class CreateBackstageConfig(object):
@@ -20,6 +22,9 @@ class CreateBackstageConfig(object):
     # Runs the things
     def run(self):
         self.data = {}
+        self.catalog_yaml= {}
+        self.catalog_component = {}
+
         if self.args.repo:
             self.data = self.get_remote_meta_yaml(self.args.repo)
         elif self.args.yaml:
@@ -27,16 +32,21 @@ class CreateBackstageConfig(object):
         else:
             print("No repo specified. Using local meta.yaml.")
             self.data = self.get_local_meta_yaml()
+            if os.path.exists('./catalog-info.yaml'):
+                self.catalog_yaml = self.get_local_catalog_yaml()
+                self.catalog_component = self.parse_catalog_yaml(self.catalog_yaml)
+
         if self.data:
             self.component = self.generate_component(self.data["meta_yaml"])
             self.depends = self.generate_depends(self.data["meta_yaml"]["ndustrial"]["depends"])
             self.component["spec"]["dependsOn"] = self.depends
 
+
+        if self.catalog_component:
+            self.merged_components = self.merge_components(self.catalog_component, self.component)
+    
         with open(r'./catalog-info.yaml', 'w') as file:
-            catalog = yaml.dump(self.component, file)
-        os.system("echo ::set-output name=catalog-info::"+yaml.dump(self.component))
-        
-#        print(yaml.dump(self.component))
+            catalog = yaml.dump(self.merged_components, file)    
 
     # Build meta yaml dir
     def get_remote_meta_yaml(self, repo):
@@ -73,36 +83,23 @@ class CreateBackstageConfig(object):
                         yml["ndustrial"][j] = None
         
         return yml
-
-    # Check repo for file and return contents of file
-    def github_get_file(self, repo, path, f_name):
-        # Auth to github
-        g = self.github_auth()
-        # Check if repo exists
-        try:
-            res = g.get_repo(repo)
-        except Exception as e:
-            print("Unable to get repo: {}".format(repo))
-            return None
-
-        # Check if f_name file exists in root dir of repo
-        if f_name in [i.path for i in res.get_contents(path)]:
-            file_content = res.get_contents(f_name)
-            return file_content.decoded_content.decode()
-        else:
-            print("{} not found in path of {}".format(
-                f_name, path, res.full_name))
-            return None
-
-    # Authenticate to github using local GITHUB_TOKEN env
-    def github_auth(self):
-        if os.getenv('GITHUB_TOKEN') is None:
-            print("GITHUB_TOKEN env variable not set. Please set and re-run script.")
-            return None
-        else:
-            token = os.getenv('GITHUB_TOKEN')
-        return Github(token)
     
+    def parse_catalog_yaml(self, catalog):
+        for i in yaml.safe_load_all(catalog):
+            if i["kind"] == "Component":
+                component = i
+        return component
+
+
+
+    def get_local_catalog_yaml(self):
+        component_yml = {}
+        # Get file and return conents
+        res = open("./catalog-info.yaml",'r')
+
+        return res
+
+ 
     # Create a Backstage component object based on meta.yml contents
     def generate_component(self, meta):
         # Create component
@@ -137,5 +134,39 @@ class CreateBackstageConfig(object):
                 dependsOnList.append("resource:{}/{}".format(env, dependency["name"]))
         return dependsOnList
 
+    def merge_components(self, catalog, meta):
+        res  = merge({}, meta, catalog, strategy=Strategy.ADDITIVE)
+        pp.pprint(res)
+        return res
+
+   # (UNUSED) Check repo for file and return contents of file
+    def github_get_file(self, repo, path, f_name):
+        # Auth to github
+        g = self.github_auth()
+        # Check if repo exists
+        try:
+            res = g.get_repo(repo)
+        except Exception as e:
+            print("Unable to get repo: {}".format(repo))
+            return None
+
+        # Check if f_name file exists in root dir of repo
+        if f_name in [i.path for i in res.get_contents(path)]:
+            file_content = res.get_contents(f_name)
+            return file_content.decoded_content.decode()
+        else:
+            print("{} not found in path of {}".format(
+                f_name, path, res.full_name))
+            return None
+
+    # (UNUSED) Authenticate to github using local GITHUB_TOKEN env
+    def github_auth(self):
+        if os.getenv('GITHUB_TOKEN') is None:
+            print("GITHUB_TOKEN env variable not set. Please set and re-run script.")
+            return None
+        else:
+            token = os.getenv('GITHUB_TOKEN')
+        return Github(token)
+    
 if __name__ == '__main__':
     CreateBackstageConfig().run()
