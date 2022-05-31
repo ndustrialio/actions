@@ -24,29 +24,43 @@ class CreateBackstageConfig(object):
         self.data = {}
         self.catalog_yaml= {}
         self.catalog_component = {}
+        self.catalog_docs = []
+        self.final_yaml = []
 
+        # Pull remote yaml
         if self.args.repo:
             self.data = self.get_remote_meta_yaml(self.args.repo)
+
+        # Use meta yaml contents passed in as arg
         elif self.args.yaml:
             self.data["meta_yaml"] = yaml.safe_load(self.args.yaml)
+
+        # Use local meta.yaml file + parse local catalog-info.yaml
         else:
             print("No repo specified. Using local meta.yaml.")
             self.data = self.get_local_meta_yaml()
             if os.path.exists('./catalog-info.yaml'):
                 self.catalog_yaml = self.get_local_catalog_yaml()
-                self.catalog_component = self.parse_catalog_yaml(self.catalog_yaml)
+                self.catalog_component, self.catalog_docs = self.parse_catalog_yaml(self.catalog_yaml)
 
+        # Parse meta yaml data
         if self.data:
             self.component = self.generate_component(self.data["meta_yaml"])
             self.depends = self.generate_depends(self.data["meta_yaml"]["ndustrial"]["depends"])
             self.component["spec"]["dependsOn"] = self.depends
 
-
+        # Merge catalog-info.yaml with meta.yaml
         if self.catalog_component:
             self.merged_components = self.merge_components(self.catalog_component, self.component)
-    
+
+        # Merge component and docs
+        if self.catalog_docs:
+            self.final_yaml.append(self.merged_components)
+            for i in self.catalog_docs:
+                self.final_yaml.append(i)
+
         with open(r'./catalog-info.yaml', 'w') as file:
-            catalog = yaml.dump(self.merged_components, file)    
+            catalog = yaml.dump_all(self.final_yaml, file)    
 
     # Build meta yaml dir
     def get_remote_meta_yaml(self, repo):
@@ -85,12 +99,13 @@ class CreateBackstageConfig(object):
         return yml
     
     def parse_catalog_yaml(self, catalog):
+        docs = []
         for i in yaml.safe_load_all(catalog):
             if i["kind"] == "Component":
                 component = i
-        return component
-
-
+            else:
+                docs.append(i)
+        return component, docs
 
     def get_local_catalog_yaml(self):
         component_yml = {}
@@ -99,7 +114,6 @@ class CreateBackstageConfig(object):
 
         return res
 
- 
     # Create a Backstage component object based on meta.yml contents
     def generate_component(self, meta):
         # Create component
@@ -136,7 +150,6 @@ class CreateBackstageConfig(object):
 
     def merge_components(self, catalog, meta):
         res  = merge({}, meta, catalog, strategy=Strategy.ADDITIVE)
-        pp.pprint(res)
         return res
 
    # (UNUSED) Check repo for file and return contents of file
