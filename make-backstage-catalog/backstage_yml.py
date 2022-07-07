@@ -3,6 +3,7 @@
 
 import os
 import argparse
+import glob
 import yaml
 from mergedeep import merge, Strategy
 from github import Github
@@ -15,61 +16,83 @@ class CreateBackstageConfig():
         self.parser = argparse.ArgumentParser(
             description='Metadata to Backstage config conversion tool.')
         self.parser.add_argument(
-            '-r', '--repo',
-            help='Name of repository you would like to pull metadata from.', required=False)
-        self.parser.add_argument(
-            '-y', '--yaml', help='Raw meta yaml contents.', required=False)
+            '-g', '--glob', action='store_true',
+            help='Glob entire repo for meta.yaml files.', required=False)
         self.args = self.parser.parse_args()
-        
-        self.data = {}
-        self.catalog_yaml = {}
-        self.catalog_component = {}
-        self.catalog_docs = []
-        self.final_yaml = []
-        self.component = {}
-        self.depends = {}
-        self.merged_components = {}
 
     def run(self):
-        '''Runs the things'''
+        '''Process args and kick things off'''
 
-        #Pull remote yaml
-        if self.args.repo:
-            self.data = self.get_remote_meta_yaml(self.args.repo)
-        #Use meta yaml contents passed in as arg
-        elif self.args.yaml:
-            self.data["meta_yaml"] = yaml.safe_load(self.args.yaml)
+        #Glob for meta files and process them individually
+        if self.args.glob:
+            meta_path = ""
+            catalog_path = ""
+            catalog_yaml = {}
+            files = glob.glob('./**/*meta.yaml',
+                          recursive = True)
 
-        #Use local meta.yaml file + parse local catalog-info.yaml
+            for filename in files:
+                catalog_docs = []
+                catalog_component = {}
+                data = {}
+                meta_path = filename
+                catalog_path = meta_path.removesuffix('meta.yaml')
+                catalog_path += 'catalog-info.yaml'
+                data = self.get_local_meta_yaml(meta_path)
+
+                if os.path.exists(catalog_path):
+                    catalog_yaml = self.get_local_catalog_yaml(catalog_path)
+                    catalog_component, catalog_docs = self.parse_catalog_yaml(catalog_yaml)
+
+                self.process_meta(catalog_path, catalog_component, catalog_docs, data)
+
+
+        #Use root dir meta.yaml file + parse root catalog-info.yaml
         else:
+            catalog_yaml = {}
+            catalog_component = {}
+            catalog_docs = []
+            data = {}
             print("No repo specified. Using local meta.yaml.")
-            self.data = self.get_local_meta_yaml()
-            if os.path.exists('./catalog-info.yaml'):
-                self.catalog_yaml = self.get_local_catalog_yaml()
-                self.catalog_component, self.catalog_docs = self.parse_catalog_yaml(self.catalog_yaml)
+            data = self.get_local_meta_yaml('./meta.yaml')
 
-        #Parse meta yaml data
-        if self.data:
-            self.component = self.generate_component(self.data["meta_yaml"])
-            self.depends = self.generate_depends(self.data["meta_yaml"]["ndustrial"]["depends"])
-            self.component["spec"]["dependsOn"] = self.depends
+            if os.path.exists('./catalog-info.yaml'):
+                catalog_yaml = self.get_local_catalog_yaml('./catalog-info.yaml')
+                catalog_component, catalog_docs = self.parse_catalog_yaml(catalog_yaml)
+
+            self.process_meta("./catalog_info.yaml",  catalog_component, catalog_docs, data)
+
+    def process_meta(self, catalog_path, catalog_component, catalog_docs, data):
+        '''Process meta yaml data into final catalog file'''
+
+        component = {}
+        depends = {}
+        merged_components = {}
+
+        if data:
+            component = self.generate_component(data["meta_yaml"])
+            if data["meta_yaml"]["ndustrial"]["depends"]:
+                depends = self.generate_depends(data["meta_yaml"]["ndustrial"]["depends"])
+                component["spec"]["dependsOn"] = depends
+
+        final_yaml = [component]
 
         #Merge catalog-info.yaml with meta.yaml
-        if self.catalog_component:
-            self.merged_components = self.merge_components(self.catalog_component, self.component)
+        if catalog_component:
+            merged_components = self.merge_components(catalog_component, component)
 
         #Merge component and docs
-        if self.catalog_docs:
-            self.final_yaml.append(self.merged_components)
-            for i in self.catalog_docs:
-                self.final_yaml.append(i)
+        if catalog_docs:
+            final_yaml.append(merged_components)
+            for i in catalog_docs:
+                final_yaml.append(i)
 
-        with open(r'./catalog-info.yaml', 'w') as file:
-            yaml.dump_all(self.final_yaml, file)
+        with open(catalog_path, 'w') as file:
+            yaml.dump_all(final_yaml, file)
 
 
     def get_remote_meta_yaml(self, repo):
-        '''Build meta yaml dir'''
+        '''UNUSED Build meta yaml dir'''
         yml = {}
         # Get file and return conents
         res = self.github_get_file(repo, "/", "meta.yaml")
@@ -79,11 +102,11 @@ class CreateBackstageConfig():
 
         return {"meta_yaml": yml}
 
-    def get_local_meta_yaml(self):
+    def get_local_meta_yaml(self, meta_path):
         '''Function to get a local meta.yaml file'''
         yml = {}
 
-        res = open("./meta.yaml", 'r')
+        res = open(meta_path, 'r')
 
         if res:
             yml = self.parse_meta_yaml(res)
@@ -107,8 +130,9 @@ class CreateBackstageConfig():
         return yml
 
     def parse_catalog_yaml(self, catalog):
-        '''Function to parse a pre-existing catalog-info.yaml'''
+        '''Function to break apart component and other docs from a pre-existing catalog-info.yaml'''
         docs = []
+        component = {}
         for i in yaml.safe_load_all(catalog):
             if i["kind"] == "Component":
                 component = i
@@ -116,15 +140,16 @@ class CreateBackstageConfig():
                 docs.append(i)
         return component, docs
 
-    def get_local_catalog_yaml(self):
+    def get_local_catalog_yaml(self,catalog_path):
         '''Function to read a local catalog-info.yaml'''
 
-        res = open("./catalog-info.yaml", 'r')
+        res = open(catalog_path, 'r')
 
         return res
 
     def generate_component(self, meta):
         '''Create a Backstage component object based on meta.yml contents'''
+
         component = {
             "apiVersion": "backstage.io/v1alpha1",
             "kind": "Component",
@@ -163,7 +188,7 @@ class CreateBackstageConfig():
 
     def github_get_file(self, repo, path, f_name):
         '''(UNUSED) Check repo for file and return contents of file'''
-        
+
         github_connection = self.github_auth()
 
         try:

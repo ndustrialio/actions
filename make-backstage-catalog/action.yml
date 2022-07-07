@@ -20,7 +20,7 @@ runs:
         python -VV
         python -m site
         python -m pip install --upgrade pip setuptools wheel
-        python -m pip install --upgrade pyyaml pygithub mergedeep
+        python -m pip install --upgrade pyyaml pygithub mergedeep glob
       shell: bash
     - run: python ${{ github.action_path }}/backstage_yml.py > ~/catalog-info.yaml
       shell: bash
