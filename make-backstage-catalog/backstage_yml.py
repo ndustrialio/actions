@@ -68,6 +68,7 @@ class CreateBackstageConfig():
         component = {}
         depends = {}
         merged_components = {}
+        final_yaml = []
 
         if data:
             component = self.generate_component(data["meta_yaml"])
@@ -75,17 +76,17 @@ class CreateBackstageConfig():
                 depends = self.generate_depends(data["meta_yaml"]["ndustrial"]["depends"])
                 component["spec"]["dependsOn"] = depends
 
-        final_yaml = [component]
-
         #Merge catalog-info.yaml with meta.yaml
         if catalog_component:
             merged_components = self.merge_components(catalog_component, component)
 
-        #Merge component and docs
+        #Merge component and any additional yaml docs
         if catalog_docs:
             final_yaml.append(merged_components)
             for i in catalog_docs:
                 final_yaml.append(i)
+        else: 
+            final_yaml = [component]
 
         with open(catalog_path, 'w') as file:
             yaml.dump_all(final_yaml, file)
@@ -131,14 +132,14 @@ class CreateBackstageConfig():
 
     def parse_catalog_yaml(self, catalog):
         '''Function to break apart component and other docs from a pre-existing catalog-info.yaml'''
-        docs = []
+        docs_list = []
         component = {}
         for i in yaml.safe_load_all(catalog):
             if i["kind"] == "Component":
                 component = i
             else:
-                docs.append(i)
-        return component, docs
+                docs_list.append(i)
+        return component, docs_list
 
     def get_local_catalog_yaml(self,catalog_path):
         '''Function to read a local catalog-info.yaml'''
@@ -183,6 +184,7 @@ class CreateBackstageConfig():
 
     def merge_components(self, catalog, meta):
         '''Run deepmerge to capture diffs from catalog-info and meta'''
+
         res = merge({}, meta, catalog, strategy=Strategy.ADDITIVE)
         return res
 
