@@ -15,10 +15,10 @@ inputs:
     required: true
   chart:
     description: Chart name
-    default: deployment
+    default: nio-api
   chart-version:
     description: Chart version
-    default: "0.1.35"
+    default: "1.0.0"
 runs:
   using: composite
   steps:
@@ -38,7 +38,6 @@ runs:
         helm diff --color upgrade ${{ github.event.repository.name }}-${{ inputs.env }} ndustrial/${{ inputs.chart }} --version=${{ inputs.chart-version }} \
           --install --debug --wait --atomic --dependency-update \
           --namespace=${{ inputs.namespace }} \
-          -f https://raw.githubusercontent.com/ndustrialio/charts/${{ inputs.chart }}-${{ inputs.chart-version }}/ndustrial/${{ inputs.chart }}/values.ndustrial.yaml \
           -f ./meta.yaml \
           -f ./.github/helm/values.yaml \
           -f ./.github/helm/${{ inputs.env }}.values.yaml \
@@ -55,7 +54,6 @@ runs:
         helm upgrade ${{ github.event.repository.name }}-${{ inputs.env }} ndustrial/${{ inputs.chart }} --version=${{ inputs.chart-version }} \
           --install --debug --wait --atomic --dependency-update \
           --namespace=${{ inputs.namespace }} \
-          -f https://raw.githubusercontent.com/ndustrialio/charts/${{ inputs.chart }}-${{ inputs.chart-version }}/ndustrial/${{ inputs.chart }}/values.ndustrial.yaml \
           -f ./meta.yaml \
           -f ./.github/helm/values.yaml \
           -f ./.github/helm/${{ inputs.env }}.values.yaml \
