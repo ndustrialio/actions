@@ -1,0 +1,66 @@
+name: Deploy
+description: Deploy using helm
+inputs:
+  kubeconfig:
+    description: Path to kubeconfig
+    required: true
+  namespace:
+    description: Kubernetes namespace
+    required: true
+  tag:
+    description: Docker image tag
+    required: true
+  env:
+    description: Target environment
+    required: true
+  chart:
+    description: Chart name
+    default: deployment
+  chart-version:
+    description: Chart version
+    default: "0.1.30"
+runs:
+  using: composite
+  steps:
+    - name: Setup kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ inputs.kubeconfig }}
+    - name: Setup helm
+      shell: bash
+      run: |
+        helm repo add ndustrial https://ndustrialio.github.io/charts
+        helm plugin add https://github.com/databus23/helm-diff >/dev/null
+    - name: Preview changes
+      shell: bash
+      run: |
+        helm diff --color upgrade ${{ github.event.repository.name }}-${{ inputs.env }} ndustrial/${{ inputs.chart }} --version=${{ inputs.chart-version }} \
+          --install --debug --wait --atomic --dependency-update \
+          --namespace=${{ inputs.namespace }} \
+          -f https://raw.githubusercontent.com/ndustrialio/charts/${{ inputs.chart }}-${{ inputs.chart-version }}/ndustrial/${{ inputs.chart }}/values.ndustrial.yaml \
+          -f ./meta.yaml \
+          -f ./.github/helm/values.yaml \
+          -f ./.github/helm/${{ inputs.env }}.values.yaml \
+          --set image.repository=ndustrialio/${{ github.event.repository.name }} \
+          --set image.tag=${{ inputs.tag }} \
+          --set ndustrial.repo=${{ github.event.repository.name }} \
+          --set ndustrial.env=${{ inputs.env }} \
+          --set ndustrial.version=${{ inputs.tag }}
+      env:
+        HELM_DIFF_IGNORE_UNKNOWN_FLAGS: "true"
+    - name: Deploy
+      shell: bash
+      run: |
+        helm upgrade ${{ github.event.repository.name }}-${{ inputs.env }} ${{ inputs.chart }} --version=${{ inputs.chart-version }} \
+          --install --debug --wait --atomic --dependency-update \
+          --namespace=${{ inputs.namespace }} \
+          -f https://raw.githubusercontent.com/ndustrialio/charts/${{ inputs.chart }}-${{ inputs.chart-version }}/ndustrial/${{ inputs.chart }}/values.ndustrial.yaml \
+          -f ./meta.yaml \
+          -f ./.github/helm/values.yaml \
+          -f ./.github/helm/${{ inputs.env }}.values.yaml \
+          --set image.repository=ndustrialio/${{ github.event.repository.name }} \
+          --set image.tag=${{ inputs.tag }} \
+          --set ndustrial.repo=${{ github.event.repository.name }} \
+          --set ndustrial.env=${{ inputs.env }} \
+          --set ndustrial.version=${{ inputs.tag }}
