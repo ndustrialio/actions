@@ -52,7 +52,7 @@ runs:
     - name: Deploy
       shell: bash
       run: |
-        helm upgrade ${{ github.event.repository.name }}-${{ inputs.env }} ${{ inputs.chart }} --version=${{ inputs.chart-version }} \
+        helm upgrade ${{ github.event.repository.name }}-${{ inputs.env }} ndustrial/${{ inputs.chart }} --version=${{ inputs.chart-version }} \
           --install --debug --wait --atomic --dependency-update \
           --namespace=${{ inputs.namespace }} \
           -f https://raw.githubusercontent.com/ndustrialio/charts/${{ inputs.chart }}-${{ inputs.chart-version }}/ndustrial/${{ inputs.chart }}/values.ndustrial.yaml \
