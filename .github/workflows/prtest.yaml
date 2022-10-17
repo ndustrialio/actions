@@ -24,5 +24,7 @@ jobs:
           echo "DEPLOYMENT_NAME=$(echo ${GITHUB_REF#refs/heads/} | sed 's/.*\///' | sed 's/-/_/' | awk '{print tolower($0)}')"
       - name: Create comment
         if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ inputs.token }}
         run: |
           echo -e "Successfully deployed ephemeral environment to https://nsight-${{ env.DEPLOYMENT_NAME }}.dev.ndustrial.io" | gh pr comment ${{github.event.issue.number}} -F-
