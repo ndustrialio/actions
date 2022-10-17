@@ -25,6 +25,6 @@ jobs:
       - name: Create comment
         if: github.event_name == 'pull_request'
         env:
-          GITHUB_TOKEN: ${{ inputs.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo -e "Successfully deployed ephemeral environment to https://nsight-${{ env.DEPLOYMENT_NAME }}.dev.ndustrial.io" | gh pr comment ${{github.event.issue.number}} -F-
