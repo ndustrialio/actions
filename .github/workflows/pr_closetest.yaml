@@ -15,5 +15,10 @@ jobs:
     steps:
       - name: Test
         run: |
+          echo $GITHUB_HEAD_REF
+          echo $GITHUB_REF_NAME
+          echo "${{ github.head_ref || github.ref_name }} "
+          echo $GITHUB_REF
+          echo ${GITHUB_REF#refs/heads/}
           echo "DEPLOYMENT_NAME=$(echo ${GITHUB_REF#refs/heads/} | sed 's/.*\///' | sed 's/-/_/' | awk '{print tolower($0)}')" >> $GITHUB_ENV
           echo "DEPLOYMENT_NAME=$(echo ${GITHUB_REF#refs/heads/} | sed 's/.*\///' | sed 's/-/_/' | awk '{print tolower($0)}')"
