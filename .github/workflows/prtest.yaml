@@ -28,4 +28,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo -e "Successfully deployed ephemeral environment to https://nsight-${{ env.DEPLOYMENT_NAME }}.dev.ndustrial.io" | gh pr comment ${{github.event.issue.number}} -F-
+          echo ${{ github.event }}
+          echo -e "Successfully deployed ephemeral environment to https://nsight-${{ env.DEPLOYMENT_NAME }}.dev.ndustrial.io" | gh pr comment ${{github.event.number}} -F-
