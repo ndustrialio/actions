@@ -1,0 +1,19 @@
+name: TestEC
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  pr:
+    if: contains(github.event.pull_request.labels.*.name, 'ephemeral')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        run: |
+          echo "DEPLOYMENT_NAME=$(echo ${GITHUB_REF#refs/heads/} | sed 's/.*\///' | sed 's/-/_/' | awk '{print tolower($0)}')" >> $GITHUB_ENV
+          echo "DEPLOYMENT_NAME=$(echo ${GITHUB_REF#refs/heads/} | sed 's/.*\///' | sed 's/-/_/' | awk '{print tolower($0)}')"
