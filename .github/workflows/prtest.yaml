@@ -24,7 +24,7 @@ jobs:
           echo "DEPLOYMENT_NAME=$(echo ${GITHUB_REF#refs/heads/} | sed 's/.*\///' | sed 's/-/_/' | awk '{print tolower($0)}')" >> $GITHUB_ENV
           echo "DEPLOYMENT_NAME=$(echo ${GITHUB_REF#refs/heads/} | sed 's/.*\///' | sed 's/-/_/' | awk '{print tolower($0)}')"
       - name: Create comment
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event.action == 'labeled' }} 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
