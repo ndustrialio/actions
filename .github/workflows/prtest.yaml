@@ -13,6 +13,7 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'ephemeral')
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Test
         run: |
           echo $GITHUB_HEAD_REF
