@@ -30,4 +30,4 @@ runs:
       run: |
         VAULT_TOKEN=$(curl -s --request POST '${{ env.VAULT_ADDR }}/v1/auth/approle/login' --header 'Content-Type: application/json' --data-raw '{"role_id": "${{ env.ROLE_ID }}","secret_id": "${{ env.SECRET_ID }}"}' | jq -r '.auth.client_token')
         echo "::add-mask::$VAULT_TOKEN"
-        echo "::set-output name=vault-token::$VAULT_TOKEN"
+        echo "vault-token=$VAULT_TOKEN" >> $GITHUB_OUTPUT
