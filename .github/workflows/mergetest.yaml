@@ -11,19 +11,19 @@ jobs:
     if: ${{ github.event_name == 'pull_request' || (github.event.issue.pull_request != '' && contains(github.event.comment.body, '/ephemeral deploy')) }}
     runs-on: ubuntu-latest
     steps:
-      - name: Determine branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.NIO_BOT_TOKEN }}
-        run: |
-          if [ "${{ github.event_name }}" = "issue_comment" ]; then
-            echo "BRANCH=$(gh pr view ${{github.event.issue.number}} --json headRefName --jq '.headRefName')" >> $GITHUB_ENV
-          elif [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "BRANCH=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
-          fi
+      # - name: Determine branch
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.NIO_BOT_TOKEN }}
+      #   run: |
+      #     if [ "${{ github.event_name }}" = "issue_comment" ]; then
+      #       echo "BRANCH=$(gh pr view ${{github.event.issue.number}} --json headRefName --jq '.headRefName')" >> $GITHUB_ENV
+      #     elif [ "${{ github.event_name }}" = "pull_request" ]; then
+      #       echo "BRANCH=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
+      #     fi
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ env.BRANCH }}
+          ref: ${{ github.head_ref || github.ref_name || github.ref }}
       - run: |
           git config --global user.email "ephemeral@ndustrial.io"
           git config --global user.name "Ephemeral Deploy"
