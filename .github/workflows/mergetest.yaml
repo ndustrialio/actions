@@ -12,7 +12,7 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
-          git merge main
+          git merge origin/main
           CONFLICTS=$(git ls-files -u | wc -l)
           if [ "$CONFLICTS" -gt 0 ] ; then
             echo "There is a merge conflict. Aborting"
