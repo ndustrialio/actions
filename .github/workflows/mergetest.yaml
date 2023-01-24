@@ -24,7 +24,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ $(gh pr view --json labels | jq 'any(.labels[]; .name == "bug")') = "false" ]; then
-            echo -e "Ephemeral label is required in order to use `/ephemeral` command." | gh pr comment ${{github.event.number}} -F-
+            echo -e 'Ephemeral label is required in order to use `/ephemeral` command.' | gh pr comment ${{github.event.number}} -F-
           fi
       - run: |
           git config --global user.email "ephemeral@ndustrial.io"
