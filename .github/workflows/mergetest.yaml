@@ -12,6 +12,8 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
+          git config --global user.email "ephemeral@ndustrial.io"
+          git config --global user.name "Ephemeral Deploy"
           git merge origin/main
           CONFLICTS=$(git ls-files -u | wc -l)
           if [ "$CONFLICTS" -gt 0 ] ; then
