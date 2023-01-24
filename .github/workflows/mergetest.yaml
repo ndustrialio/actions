@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    if: ${{ github.event_name == 'pull_request' || (github.event.issue.pull_request != '' && contains(github.event.comment.body, '/ephemeral deploy')) }}
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'ephemeral') || (github.event.issue.pull_request != '' && contains(github.event.comment.body, '/ephemeral deploy')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: xt0rted/pull-request-comment-branch@v1
@@ -18,6 +18,14 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ steps.comment-branch.outputs.head_ref || github.head_ref || github.ref_name }}
+      - name: Validate labeled
+        if: github.event_name == 'issue_comment'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ $(gh pr view --json labels | jq 'any(.labels[]; .name == "bug")') = "false" ]; then
+            echo -e "Ephemeral label is required in order to use `/ephemeral` command." | gh pr comment ${{github.event.number}} -F-
+          fi
       - run: |
           git config --global user.email "ephemeral@ndustrial.io"
           git config --global user.name "Ephemeral Deploy"
