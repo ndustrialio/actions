@@ -3,7 +3,7 @@ author: mgagliardo91
 branding:
   icon: lock
   color: green
-description: Outputs a valid vault token for the given valut role and secret combination
+description: Outputs a valid vault token for the given vault role and secret combination
 inputs:
   vault-address:
     description: The vault URL
