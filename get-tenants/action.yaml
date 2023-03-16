@@ -16,5 +16,6 @@ runs:
       id: get-tenants
       shell: bash
       run: |
+        ls ${{ github.action_path }}
         tenants=$(${{ github.action_path }}/get-tenants.sh)
         echo "tenants=$tenants" >> $GITHUB_OUTPUT
