@@ -13,7 +13,7 @@ on:
 
 jobs:
   get-tenants:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ndustrial-runner-small]
     outputs:
       tenants: ${{ steps.gts.outputs.tenants }}
     steps:
@@ -21,7 +21,7 @@ jobs:
         uses: ndustrialio/actions/get-tenants@tenantsJob
         id: gts
   run-tenant:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ndustrial-runner-small]
     needs: [get-tenants]
     strategy:
       matrix:
