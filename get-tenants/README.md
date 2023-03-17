@@ -1,24 +1,34 @@
 # Fetch Vault Token
 
-An action that enables a grabbing a vault token via a role and secret.
+An action that enables a grabbing a list of current tenants.
 
 ## Usage
 
 ```yaml
-name: Test Fetch Vault Token
+name: Test tenants
+
+on:
+  push:
+    branches: [tenantsJob]
 
 jobs:
-  fetch-vault-token:
+  get-tenants:
     runs-on: ubuntu-latest
+    outputs:
+      tenants: ${{ steps.gts.outputs.tenants }}
     steps:
-      - name: Get Vault Token
-        id: vault
-        uses: ndustrialio/actions/fetch-vault-token@main
-        with:
-          vault-address: ${{ secrets.VAULT_ADDR }}
-          secret-id: ${{ secrets.VAULT_SECRET_ID }}
-          role-id: ${{ secrets.VAULT_ROLE_ID }}
-      - name: Echo vault token
-         run: |
-          echo "token=${{ steps.vault.outputs.vault-token }}"
+      - name: Get Tenants
+        uses: ndustrialio/actions/get-tenants@tenantsJob
+        id: gts
+  run-tenant:
+    runs-on: ubuntu-latest
+    needs: [get-tenants]
+    strategy:
+      matrix:
+        TENANT: ${{fromJSON(needs.get-tenants.outputs.tenants)}}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment
+        run: |
+          echo ${{ matrix.TENANT }}
 ```
