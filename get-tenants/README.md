@@ -1,4 +1,4 @@
-# Fetch Vault Token
+# Return the list of tenants
 
 An action that enables a grabbing a list of current tenants.
 
