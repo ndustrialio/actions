@@ -1,0 +1,21 @@
+name: Get Current Tenants
+author: melting
+branding:
+  icon: home
+  color: orange
+description: Outputs a list of tenant slugs
+outputs:
+  tenants: 
+    description: the list of tenants
+    value: ${{ steps.get-tenants.outputs.tenants }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v3
+    - name: Get Tenants
+      id: get-tenants
+      shell: bash
+      run: |
+        ls ${{ github.action_path }}
+        tenants=$(${{ github.action_path }}/get-tenants.sh)
+        echo "tenants=$tenants" >> $GITHUB_OUTPUT
