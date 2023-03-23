@@ -4,6 +4,11 @@ branding:
   icon: home
   color: orange
 description: Outputs a list of tenant slugs
+inputs:
+  env:
+    description: "Environment you are using staging | prod"
+    required: false
+    default: "staging"
 outputs:
   tenants: 
     description: the list of tenants
@@ -16,6 +21,5 @@ runs:
       id: get-tenants
       shell: bash
       run: |
-        ls ${{ github.action_path }}
-        tenants=$(${{ github.action_path }}/get-tenants.sh)
+        tenants=$(${{ github.action_path }}/index.js ${{ inputs.env }})
         echo "tenants=$tenants" >> $GITHUB_OUTPUT

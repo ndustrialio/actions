@@ -25,7 +25,7 @@ jobs:
     needs: [get-tenants]
     strategy:
       matrix:
-        TENANT: ${{fromJSON(needs.get-tenants.outputs.tenants)}}
+        TENANT: ${{fromJSON(needs.get-tenants.outputs.tenants)*.slug}}
     steps:
       - uses: actions/checkout@v2
       - name: Set environment
