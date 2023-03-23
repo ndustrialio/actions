@@ -13,10 +13,16 @@ on:
 
 jobs:
   get-tenants:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ndustrial-runner-small]
     outputs:
       tenants: ${{ steps.gts.outputs.tenants }}
     steps:
+      - name: Set environment
+        run: |
+          case "${GITHUB_REF#refs/heads/}" in
+            main)     ENV=prod ;;
+            staging)  ENV=staging ;;
+          esac
       - name: Get Tenants
         uses: ndustrialio/actions/get-tenants@tenantsJob
         id: gts
@@ -25,10 +31,10 @@ jobs:
     needs: [get-tenants]
     strategy:
       matrix:
-        TENANT: ${{fromJSON(needs.get-tenants.outputs.tenants)*.slug}}
+        TENANT: ${{fromJSON(needs.get-tenants.outputs.tenants)}}
     steps:
       - uses: actions/checkout@v2
       - name: Set environment
         run: |
-          echo ${{ matrix.TENANT }}
+          echo ${{ matrix.TENANT*.slug }}
 ```
