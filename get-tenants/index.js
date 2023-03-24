@@ -1,8 +1,6 @@
 #!/usr/bin/env -S node --no-warnings
 
 const main = async (env = "") => {
-    console.log('[{"slug":"melting","legacyId":"c5517437-8497-400a-8c6d-a9de88669c70"}]');
-    return
     const url = `https://nio-internal.api${env == 'prod'? "" : ".staging"}.ndustrial.io/graphql`;
 
     const response = await fetch(url, {
@@ -24,5 +22,5 @@ const main = async (env = "") => {
     console.log(JSON.stringify(tenants.data.tenants.nodes));
 }
 
-main(process.argv[1]);
+main(process.argv[1]).then();
 
