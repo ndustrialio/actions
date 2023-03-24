@@ -2,7 +2,6 @@
 
 const main = async (env = "") => {
     const url = `https://nio-internal.api${env == 'prod'? "" : ".staging"}.ndustrial.io/graphql`;
-    console.debug(url)
 
     const response = await fetch(url, {
           "headers": {
@@ -19,11 +18,9 @@ const main = async (env = "") => {
           }`}),
           "method": "POST"
         });
-    console.debug("fetch complete")
     const tenants = await response.json();
-    console.debug("json parsed", tenants)
     console.log(JSON.stringify(tenants.data.tenants.nodes));
 }
 
-main(process.argv[1]).then(r => console.debug(r));
+main(process.argv[1]);
 
