@@ -36,5 +36,5 @@ jobs:
       - uses: actions/checkout@v2
       - name: Set environment
         run: |
-          echo ${{ matrix.TENANT*.slug }}
+          echo ${{ matrix.TENANT.slug }}
 ```
