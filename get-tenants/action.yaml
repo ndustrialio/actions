@@ -17,6 +17,11 @@ runs:
   using: composite
   steps:
     - uses: actions/checkout@v3
+    - name: Set up Node
+      uses: actions/setup-node@v2
+      with:
+        node-version-file: .nvmrc
+        cache: npm
     - name: Get Tenants
       id: get-tenants
       shell: bash
