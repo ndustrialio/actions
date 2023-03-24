@@ -17,9 +17,17 @@ jobs:
     outputs:
       tenants: ${{ steps.gts.outputs.tenants }}
     steps:
+      - name: Set environment
+        run: |
+          case "${GITHUB_REF#refs/heads/}" in
+            main)     ENV=prod ;;
+            staging)  ENV=staging ;;
+          esac
       - name: Get Tenants
         uses: ndustrialio/actions/get-tenants@tenantsJob
         id: gts
+        with:
+          env: ${{ ENV }}  
   run-tenant:
     runs-on: [self-hosted, ndustrial-runner-small]
     needs: [get-tenants]
@@ -30,5 +38,5 @@ jobs:
       - uses: actions/checkout@v2
       - name: Set environment
         run: |
-          echo ${{ matrix.TENANT }}
+          echo ${{ matrix.TENANT.slug }}
 ```
