@@ -26,6 +26,8 @@ jobs:
       - name: Get Tenants
         uses: ndustrialio/actions/get-tenants@tenantsJob
         id: gts
+        with:
+          env: ${{ ENV }}  
   run-tenant:
     runs-on: ubuntu-latest
     needs: [get-tenants]

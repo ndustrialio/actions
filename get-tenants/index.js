@@ -22,5 +22,5 @@ const main = async (env = "") => {
     console.log(JSON.stringify(tenants.data.tenants.nodes));
 }
 
-main(process.argv[1]);
+main(process.argv[2]);
 
