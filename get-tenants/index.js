@@ -19,8 +19,9 @@ const main = async (env = "") => {
           }`}),
           "method": "POST"
         });
+    console.debug("fetch complete")
     const tenants = await response.json();
-    console.debug(tenants)
+    console.debug("json parsed", tenants)
     console.log(JSON.stringify(tenants.data.tenants.nodes));
 }
 
