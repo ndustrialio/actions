@@ -1,9 +1,8 @@
 #!/usr/bin/env -S node --no-warnings
 
 const main = async (env = "") => {
-    // TODO when action runner can access staging remove
-    env = "staging"
     const url = `https://nio-internal.api${env == 'prod'? "" : ".staging"}.ndustrial.io/graphql`;
+    console.log(`Fetching tenants from ${url}`)
 
     const response = await fetch(url, {
           "headers": {
