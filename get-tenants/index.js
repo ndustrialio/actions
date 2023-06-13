@@ -2,7 +2,6 @@
 
 const main = async (env = "") => {
     const url = `https://nio-internal.api${env == 'prod'? "" : ".staging"}.ndustrial.io/graphql`;
-    console.log(`Fetching tenants from ${url}`)
 
     const response = await fetch(url, {
           "headers": {
