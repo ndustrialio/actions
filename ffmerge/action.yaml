@@ -42,7 +42,7 @@ runs:
           status_is_pending=$(echo $(gh pr checks ${{github.event.issue.number}}) | grep 'pending') || true 
         done
 
-        status_is_success=$(echo $(gh pr checks ${{github.event.issue.number}}) | grep 'pass') || true 
+        status_is_success=$(echo $(gh pr checks ${{github.event.issue.number}}) --required | grep 'pass') || true 
 
         if [[ -n $status_is_success ]]; then
           git checkout $branch && git pull
