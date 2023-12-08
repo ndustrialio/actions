@@ -24,7 +24,7 @@ runs:
         branch=$(gh pr view ${{github.event.issue.number}} --json headRefName --jq '.headRefName')
         target=$(gh pr view ${{github.event.issue.number}} --json baseRefName --jq '.baseRefName')
         echo "from $branch to $target"
-        status_is_failed=$(echo $(gh pr checks ${{github.event.issue.number}} --required) | grep 'fail') || true
+        status_is_failed=$(echo $(gh pr checks ${{github.event.issue.number}} --required 2> /dev/null) | grep 'fail') || true
 
         if [[ -n $status_is_failed ]]; then
           >&2 echo "Pull request checks have not passed. Try again once checks have passed."
@@ -32,19 +32,19 @@ runs:
           exit 1
         fi
 
-        status_is_pending=$(echo $(gh pr checks ${{github.event.issue.number}} --required) | grep 'pending') || true 
+        status_is_pending=$(echo $(gh pr checks ${{github.event.issue.number}} --required 2> /dev/null) | grep 'pending') || true 
 
         pending_iter_total=1
         while [[ -n $status_is_pending ]] && [[ $pending_iter_total -le 6 ]]; do
           echo "Waiting to see non-pending state...($pending_iter_total/6)"
           sleep 10
           ((pending_iter_total++))
-          status_is_pending=$(echo $(gh pr checks ${{github.event.issue.number}} --required) | grep 'pending') || true 
+          status_is_pending=$(echo $(gh pr checks ${{github.event.issue.number}} --required 2> /dev/null) | grep 'pending') || true 
         done
 
-        status_is_success=$(echo $(gh pr checks ${{github.event.issue.number}} --required) | grep 'pass') || true 
+        status_is_not_success=$(echo $(gh pr checks ${{github.event.issue.number}} --required 2> /dev/null) | grep -E '(pending|fail)') || true 
 
-        if [[ -n $status_is_success ]]; then
+        if [[ -z $status_is_not_success ]]; then
           git checkout $branch && git pull
           git checkout $target && git pull
           result=$(git merge --ff-only $branch 2>&1 && git push origin HEAD 2>&1) || exit_code=$?
