@@ -42,9 +42,9 @@ runs:
           status_is_pending=$(echo $(gh pr checks ${{github.event.issue.number}} --required 2>&1 /dev/null) | grep 'pending') || true 
         done
 
-        status_is_success=$(echo $(gh pr checks ${{github.event.issue.number}} --required 2>&1 /dev/null) | grep -E '(pending|fail)') || true 
+        status_is_not_success=$(echo $(gh pr checks ${{github.event.issue.number}} --required 2>&1 /dev/null) | grep -E '(pending|fail)') || true 
 
-        if [[ -z $status_is_success ]]; then
+        if [[ -z $status_is_not_success ]]; then
           git checkout $branch && git pull
           git checkout $target && git pull
           result=$(git merge --ff-only $branch 2>&1 && git push origin HEAD 2>&1) || exit_code=$?
