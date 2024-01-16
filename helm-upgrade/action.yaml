@@ -31,7 +31,7 @@ runs:
       shell: bash
       run: |
         helm repo add ndustrial https://ndustrialio.github.io/charts
-        helm plugin add https://github.com/databus23/helm-diff >/dev/null
+        helm plugin add https://github.com/databus23/helm-diff --version 3.8.1 >/dev/null
     - name: Preview changes
       shell: bash
       run: |
