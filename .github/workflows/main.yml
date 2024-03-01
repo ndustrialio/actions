@@ -8,6 +8,6 @@ jobs:
     name: Build and Deploy
     runs-on: [nionic-runner]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: |
           echo "Hello World!"
