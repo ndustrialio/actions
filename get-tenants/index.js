@@ -9,7 +9,7 @@ const main = async (env = "") => {
           },
           "body": JSON.stringify({
             query: `{
-            tenants(filter: { nionicEnabled: { equalTo: true }}) {
+            tenants(filter: { isVerified: { equalTo: true }}) {
               nodes {
                 slug
                 legacyId
